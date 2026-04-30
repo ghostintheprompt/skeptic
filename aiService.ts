@@ -27,6 +27,7 @@ export interface ScopingReport {
 }
 
 export async function scopeProject(files: string[]): Promise<ScopingReport> {
+  console.log("[AI] Starting project scoping...");
   const ai = getAI();
   const prompt = `Analyze the following file structure for a repository and provide a scoping report and a risk score (0-100).
   A high risk score (80+) implies complex business logic, sensitive patterns (auth, crypto), or legacy structures.
@@ -36,29 +37,35 @@ export async function scopeProject(files: string[]): Promise<ScopingReport> {
   
   Focus on identifying the primary tech stack, entry points, and likely attack surfaces.`;
 
-  const result = await ai.models.generateContent({
-    model: "gemini-2.0-flash-exp",
-    contents: prompt,
-    config: {
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: Type.OBJECT,
-        properties: {
-          projectOverview: { type: Type.STRING },
-          techStack: { type: Type.ARRAY, items: { type: Type.STRING } },
-          attackSurfaces: { type: Type.ARRAY, items: { type: Type.STRING } },
-          highRiskFiles: { type: Type.ARRAY, items: { type: Type.STRING } },
-          estimatedRiskScore: { type: Type.NUMBER }
-        },
-        required: ["projectOverview", "techStack", "attackSurfaces", "highRiskFiles", "estimatedRiskScore"]
+  try {
+    const result = await ai.models.generateContent({
+      model: "gemini-2.0-flash",
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            projectOverview: { type: Type.STRING },
+            techStack: { type: Type.ARRAY, items: { type: Type.STRING } },
+            attackSurfaces: { type: Type.ARRAY, items: { type: Type.STRING } },
+            highRiskFiles: { type: Type.ARRAY, items: { type: Type.STRING } },
+            estimatedRiskScore: { type: Type.NUMBER }
+          },
+          required: ["projectOverview", "techStack", "attackSurfaces", "highRiskFiles", "estimatedRiskScore"]
+        }
       }
-    }
-  });
-
-  return JSON.parse(result.text);
+    });
+    console.log("[AI] Scoping response received.");
+    return JSON.parse(result.text);
+  } catch (error) {
+    console.error("[AI] Scoping Error:", error);
+    throw error;
+  }
 }
 
 export async function auditFile(fileName: string, content: string): Promise<{ findings: SecurityFinding[], logs: { prover: string, skeptic: string } }> {
+  console.log(`[AI] Auditing file: ${fileName}...`);
   const ai = getAI();
   
   // PHASE 1: THE PROVER (Identify vulnerabilities & AI Pitfalls)
@@ -78,10 +85,12 @@ export async function auditFile(fileName: string, content: string): Promise<{ fi
   
   Format your findings as a list of potential issues.`;
 
+  console.log("[AI] Sending Prover prompt...");
   const proverResult = await ai.models.generateContent({
-    model: "gemini-2.0-flash-exp",
+    model: "gemini-2.0-flash",
     contents: proverPrompt,
   });
+  console.log("[AI] Prover response received.");
 
   // PHASE 2: THE SKEPTIC (Counter-Audit/Debunking)
   const skepticPrompt = `You are a Senior AppSec Defensive Engineer (The Skeptic).
@@ -98,10 +107,12 @@ export async function auditFile(fileName: string, content: string): Promise<{ fi
   
   Provide a rebuttal for each finding.`;
 
+  console.log("[AI] Sending Skeptic prompt...");
   const skepticResult = await ai.models.generateContent({
-    model: "gemini-2.0-flash-exp",
+    model: "gemini-2.0-flash",
     contents: skepticPrompt,
   });
+  console.log("[AI] Skeptic response received.");
 
   // PHASE 3: THE JUDGE (Final Verdict)
   const judgePrompt = `You are the Lead Security Architect. You must reconcile the arguments from a Security Auditor (Prover) and a Defense Engineer (Skeptic).
@@ -117,8 +128,9 @@ export async function auditFile(fileName: string, content: string): Promise<{ fi
   
   Format as JSON only.`;
 
+  console.log("[AI] Sending Judge prompt...");
   const validated = await ai.models.generateContent({
-    model: "gemini-2.0-flash-exp",
+    model: "gemini-2.0-flash",
     contents: judgePrompt,
     config: {
       responseMimeType: "application/json",
@@ -141,6 +153,7 @@ export async function auditFile(fileName: string, content: string): Promise<{ fi
       }
     }
   });
+  console.log("[AI] Judge response received.");
 
   return {
     findings: JSON.parse(validated.text),
@@ -156,6 +169,7 @@ export async function refactorCode(finding: SecurityFinding, content: string): P
   critique: string, 
   researchQueries: string[] 
 }> {
+  console.log(`[AI] Generating refactor for: ${finding.title}...`);
   const ai = getAI();
   
   // PHASE 1: Generate the Initial Mitigation
@@ -171,7 +185,7 @@ export async function refactorCode(finding: SecurityFinding, content: string): P
   Focus on high-fidelity, production-ready code. Provide only the code in a markdown block.`;
 
   const mitigationResult = await ai.models.generateContent({
-    model: "gemini-2.0-flash-exp",
+    model: "gemini-2.0-flash",
     contents: mitigationPrompt
   });
   const mitigationCode = mitigationResult.text;
@@ -192,7 +206,7 @@ export async function refactorCode(finding: SecurityFinding, content: string): P
   Format as a concise technical critique for a human lead architect.`;
 
   const critiqueResult = await ai.models.generateContent({
-    model: "gemini-2.0-flash-exp",
+    model: "gemini-2.0-flash",
     contents: critiquePrompt
   });
 
@@ -202,7 +216,7 @@ export async function refactorCode(finding: SecurityFinding, content: string): P
   Format as a JSON array of strings only.`;
 
   const researchResult = await ai.models.generateContent({
-    model: "gemini-2.0-flash-exp",
+    model: "gemini-2.0-flash",
     contents: researchPrompt,
     config: {
       responseMimeType: "application/json",

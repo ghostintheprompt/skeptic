@@ -52,8 +52,8 @@ async function startServer() {
       resave: false,
       saveUninitialized: false,
       cookie: {
-        secure: true,
-        sameSite: "none",
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000, // 24 hours
       },
@@ -173,20 +173,26 @@ async function startServer() {
   // --- AI Audit Endpoints ---
   app.post("/api/audit/scope", async (req, res) => {
     const { files } = req.body;
+    console.log(`[Server] Scoping project with ${files?.length} files...`);
     try {
       const report = await scopeProject(files);
+      console.log(`[Server] Scoping complete.`);
       res.json(report);
     } catch (error: any) {
+      console.error("[Server] Scoping Error:", error);
       res.status(500).json({ error: error.message });
     }
   });
 
   app.post("/api/audit/file", async (req, res) => {
     const { fileName, content } = req.body;
+    console.log(`[Server] Auditing file: ${fileName}...`);
     try {
       const result = await auditFile(fileName, content);
+      console.log(`[Server] Audit complete for ${fileName}.`);
       res.json(result);
     } catch (error: any) {
+      console.error(`[Server] Audit Error for ${fileName}:`, error);
       res.status(500).json({ error: error.message });
     }
   });
