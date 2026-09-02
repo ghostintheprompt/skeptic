@@ -139,7 +139,7 @@ async function startServer() {
   // --- Update Checker ---
   app.get("/api/update-check", (req, res) => {
     res.json({ 
-      version: "1.0.0", 
+      version: "1.2.0",
       url: "https://github.com/ghostintheprompt/skeptic/releases/latest" 
     });
   });
@@ -147,6 +147,7 @@ async function startServer() {
   // --- Config Management ---
   app.get("/api/config", (req, res) => {
     res.json({
+      hasAnthropicKey: !!process.env.ANTHROPIC_API_KEY,
       hasGeminiKey: !!process.env.GEMINI_API_KEY,
       hasGithubClientId: !!process.env.VITE_GITHUB_CLIENT_ID,
       hasGithubClientSecret: !!process.env.GITHUB_CLIENT_SECRET,
@@ -155,8 +156,9 @@ async function startServer() {
   });
 
   app.post("/api/config", (req, res) => {
-    const { geminiKey, githubClientId, githubClientSecret, appUrl } = req.body;
+    const { anthropicKey, geminiKey, githubClientId, githubClientSecret, appUrl } = req.body;
     const updates: Record<string, string> = {};
+    if (anthropicKey) updates.ANTHROPIC_API_KEY = anthropicKey;
     if (geminiKey) updates.GEMINI_API_KEY = geminiKey;
     if (githubClientId) updates.VITE_GITHUB_CLIENT_ID = githubClientId;
     if (githubClientSecret) updates.GITHUB_CLIENT_SECRET = githubClientSecret;

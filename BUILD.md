@@ -27,5 +27,6 @@
 3. The server can be run using `npm start`.
 
 ### First-Launch Instructions
-- Ensure `.env` is populated with `GEMINI_API_KEY`, `VITE_GITHUB_CLIENT_ID`, and `GITHUB_CLIENT_SECRET`.
+- Ensure `.env` is populated with `ANTHROPIC_API_KEY` and/or `GEMINI_API_KEY` (Claude runs when both are set), plus `VITE_GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET`.
 - Launch the app and authorize with GitHub to start auditing.
+- To run the eval harness: `npm run eval` (see `docs/EVAL.md`).

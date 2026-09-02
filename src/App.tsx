@@ -78,7 +78,7 @@ export default function App() {
     const res = await fetch('/api/config');
     const data = await res.json();
     setConfig(data);
-    if (!data.hasGeminiKey || !data.hasGithubClientId) {
+    if ((!data.hasAnthropicKey && !data.hasGeminiKey) || !data.hasGithubClientId) {
       setShowSettings(true);
     }
   };
@@ -356,8 +356,13 @@ export default function App() {
                   </div>
                   <form onSubmit={saveConfig} className="space-y-4">
                     <div className="space-y-1">
+                      <label className="text-[10px] font-bold uppercase text-gray-500">Anthropic API Key (Claude)</label>
+                      <input name="anthropicKey" type="password" placeholder="••••••••••••••••" className="w-full bg-black border border-gray-800 rounded-xl p-3 text-sm focus:border-blue-500 outline-none transition-colors" defaultValue={config?.hasAnthropicKey ? "********" : ""} />
+                    </div>
+                    <div className="space-y-1">
                       <label className="text-[10px] font-bold uppercase text-gray-500">Gemini API Key</label>
                       <input name="geminiKey" type="password" placeholder="••••••••••••••••" className="w-full bg-black border border-gray-800 rounded-xl p-3 text-sm focus:border-blue-500 outline-none transition-colors" defaultValue={config?.hasGeminiKey ? "********" : ""} />
+                      <p className="text-[10px] text-gray-600">Set either key. Claude runs when both are present.</p>
                     </div>
                     <div className="space-y-1">
                       <label className="text-[10px] font-bold uppercase text-gray-500">GitHub Client ID</label>
