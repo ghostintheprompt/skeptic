@@ -93,7 +93,11 @@ export const DATASET: EvalCase[] = [
     groundTruth: "clean",
     category: "secrets",
     mirrors: "hardcoded-secret",
-    note: "Secret is correctly read from env with a startup guard - no hardcoded credential.",
+    note: "Secret is correctly read from env with a startup guard - no hardcoded credential. " +
+      "2026-10-11: a hand-run blind eval (no API key available that day) separately found a real, " +
+      "unrelated bug here - no idempotency key on paymentIntents.create, a real double-charge risk " +
+      "on retry. Patched (chargeCustomer now takes and passes idempotencyKey) so this fixture is " +
+      "actually clean on the property it was labeled for, instead of accidentally clean.",
   },
   {
     id: "dead-code-todo",
@@ -146,6 +150,12 @@ export const DATASET: EvalCase[] = [
     groundTruth: "clean",
     category: "auth",
     mirrors: "broken-auth",
-    note: "Uses crypto.timingSafeEqual with a length check - the correct constant-time pattern.",
+    note: "Uses crypto.timingSafeEqual with a length check - the correct constant-time pattern. " +
+      "2026-10-11: a hand-run blind eval (no API key available that day) separately found a real, " +
+      "unrelated fail-open bug here - an unset ADMIN_PASSWORD defaults to \"\", and an empty " +
+      "providedPassword then compares two zero-length buffers as equal, granting access with no " +
+      "real credential at all. Patched (checkAdminAccess now fails closed when the stored secret " +
+      "is empty) so this fixture is actually clean on the property it was labeled for, instead of " +
+      "accidentally clean.",
   },
 ];

@@ -33,3 +33,11 @@ npm run eval -- gemini    # force Gemini
 ```
 
 Running it against both providers on the same fixture set is the natural next step once one set of numbers exists — same method, same dataset, different model in the Prover/Skeptic/Judge seat.
+
+## 2026-10-11: run it by hand, for real, without an API key
+
+No `ANTHROPIC_API_KEY`/`GEMINI_API_KEY` was configured that day. Rather than publish a hedged or fabricated result, the full 16-fixture eval was run by hand: 16 independent blind subagents, each given only the file content and the exact Prover/Skeptic/Judge prompts from `aiService.ts`, zero access to `dataset.ts`'s ground-truth labels. Not the same as `npm run eval` (no enforced Zod structured output, 16 separate processes instead of one), but a faithful substitute. Full writeup: `src/app/articles/running-skeptics-eval-without-an-api-key.md` on ghostintheprompt.com.
+
+Real result: perfect recall (8/8 vulnerable fixtures caught, confidence 0.80-0.98). Full-pipeline precision 0.667 by the literal confusion matrix — but two of the four "false positives" turned out to be real, independently-verified bugs in what `dataset.ts` assumed were clean fixtures (`constant-time-compare.ts`'s fail-open empty-password bypass, `env-secret-correct.ts`'s missing Stripe idempotency key). Both fixtures patched the same day (see their `dataset.ts` notes) so they're actually clean on the property they're labeled for, not accidentally clean.
+
+Also found and **not fixed**: `proverFlagged()`'s bare-substring heuristic flags nearly every clean fixture, because the Prover prompt's own instruction to check four named AI-pitfall categories means a correct "none found" verdict still contains the exact watched-for keyword. A per-sentence negation check was tried and reverted after measuring it against the real transcripts — it dropped Prover-only recall from 1.00 to 0.75 (two real vulnerable findings use negation as part of describing the vulnerability itself, e.g. "crypto.hashSync does NOT exist"), a wash on F1, not an improvement. Documented as a known limitation in `run-eval.ts` instead of shipping a fix that measured out worse than the problem it was meant to solve.

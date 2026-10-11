@@ -36,6 +36,29 @@ const RESULTS_DIR = path.join(__dirname, "results");
 const FLAG_SIGNAL = /(critical|high severity|vulnerab|injection|hardcoded|weak crypto|broken auth|ghost method|sanitization theater|orphaned|lazy logic|hallucinat)/i;
 const CLEAR_SIGNAL = /no\s+(vulnerabilit(?:y|ies)|issues?|findings?|security concerns?)\s*(?:were|was)?\s*(?:found|identified|detected)/i;
 
+// Known limitation, confirmed 2026-10-11 running a real 16-fixture eval by
+// hand (no API key that day; 16 blind subagents stood in for the model
+// calls): the Prover prompt explicitly instructs checking four named
+// AI-pitfall categories - "Ghost Methods," "Sanitization Theater,"
+// "Orphaned State," "Lazy Logic." A careful Prover correctly clearing a
+// file says so by name ("Sanitization Theater: none found," "No ghost
+// methods or orphaned state were found"), and this bare substring match
+// can't tell that apart from an actual finding - every one of the 8 clean
+// fixtures in that run tripped FLAG_SIGNAL for exactly this reason,
+// pushing Prover-only precision to ~0.5 regardless of the Prover's actual
+// judgment quality. A per-sentence negation check was tried as a fix and
+// reverted: on the same real transcripts it dropped Prover-only recall
+// from 1.00 to 0.75, because real findings routinely use negation inside
+// their own description ("crypto.hashSync does NOT exist" IS the
+// vulnerability; "MD5... with NO adaptive work factor" IS the weakness),
+// and no simple regex window reliably tells that apart from a genuine
+// cleared-verdict negation. Net effect was a wash on F1 (0.70 -> 0.67),
+// not an improvement - left as a documented limitation rather than a
+// false "fix." See docs/EVAL.md and
+// src/app/articles/running-skeptics-eval-without-an-api-key.md on
+// ghostintheprompt.com for the real numbers this was measured against.
+
+
 function proverFlagged(proverText: string): boolean {
   if (CLEAR_SIGNAL.test(proverText)) return false;
   return FLAG_SIGNAL.test(proverText);
