@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit",
-    "eval": "tsx eval/run-eval.ts"
+    "eval": "tsx eval/run-eval.ts",
+    "audit:ci": "tsx cli/audit-ci.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.123.0",

@@ -31,6 +31,31 @@ Skeptic operates as a **Security Advisory System**, not an autonomous patcher. W
 2. **The Skeptic's Critique:** Users are presented with both the suggested code and a brutally honest critique of its potential weaknesses.
 3. **Independent Verification:** Skeptic provides targeted research queries for OWASP and MDN, empowering the human lead architect to verify the solution through trusted documentation before implementation.
 
+## Automation / CI Mode
+
+The interactive app is deliberately human-in-the-loop — same philosophy
+holds in CI. `cli/audit-ci.ts` runs the same Prover-Skeptic-Judge pipeline
+unattended against changed files, writes a report, and **gates the build**
+on real findings; it never writes or commits a fix itself.
+
+```bash
+npm run audit:ci -- --diff origin/main    # audits files changed vs a ref
+npm run audit:ci -- src/app.ts src/db.ts  # or an explicit file list
+```
+
+Gate: fails (exit 1) if any finding is `CRITICAL`/`HIGH` severity with
+confidence above `SKEPTIC_CI_THRESHOLD` (default `0.8` — the same cutoff
+the Judge prompt itself uses for "finding stands after rebuttal," not an
+arbitrary CI number). Writes `skeptic-report.json` and
+`skeptic-report.md` for a workflow to upload or post as a PR comment.
+See [.github/workflows/skeptic-audit.yml](.github/workflows/skeptic-audit.yml)
+for a working example.
+
+Files audit concurrently (`SKEPTIC_CI_CONCURRENCY`, default `4`) — each
+file costs 3 sequential LLM calls (Prover, Skeptic, Judge), so auditing a
+large PR diff one file at a time would make the gate itself the slowest
+part of CI.
+
 ## New in v1.2.0
 
 - **Model-Agnostic:** Claude and Gemini are both first-class backends now (`ANTHROPIC_API_KEY` and/or `GEMINI_API_KEY` — Claude runs when both are set). The Prover-Skeptic-Judge method shouldn't depend on which model plays each role, so it doesn't.
