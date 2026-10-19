@@ -67,7 +67,7 @@ part of CI.
 - **In-App Configuration:** Manage your GitHub and model-provider credentials directly through the new Settings panel.
 - **Interactive Scoping:** After the initial toxicity scan, you can hand-pick which files to deep-audit.
 - **Security Advisory System:** Structured mitigations with built-in self-critique and research paths.
-- **Live Reasoning Logs:** Watch the Prover and Skeptic debate in real-time through the audit console.
+- **Live Reasoning Logs:** Watch the Prover's findings and the Skeptic's rebuttal stream in real time through the audit console.
 
 ## Features
 

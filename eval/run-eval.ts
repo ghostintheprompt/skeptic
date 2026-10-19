@@ -3,10 +3,10 @@
  *
  * Runs the full audit pipeline against a labeled fixture set and reports
  * Prover-only vs. Prover-Skeptic-Judge precision/recall/F1. This is the
- * thing the README's "eliminates false positives" claim needs to actually
- * back it up - see docs/EVAL.md for the read on what a low prover-only
- * precision + high full-pipeline precision would mean (and what it
- * wouldn't).
+ * thing the README's "measured (not just claimed) to reduce false
+ * positives" line needs to actually back it up - see docs/EVAL.md for the
+ * read on what a low prover-only precision + high full-pipeline precision
+ * would mean (and what it wouldn't).
  *
  * Usage:
  *   npm run eval              # auto-picks provider from configured keys
