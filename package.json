@@ -11,7 +11,8 @@
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit",
     "eval": "tsx eval/run-eval.ts",
-    "audit:ci": "tsx cli/audit-ci.ts"
+    "audit:ci": "tsx cli/audit-ci.ts",
+    "test:injection": "tsx eval/injection-resistance.test.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.123.0",

@@ -59,7 +59,7 @@ part of CI.
 ## New in v1.2.0
 
 - **Model-Agnostic:** Claude and Gemini are both first-class backends now (`ANTHROPIC_API_KEY` and/or `GEMINI_API_KEY` — Claude runs when both are set). The Prover-Skeptic-Judge method shouldn't depend on which model plays each role, so it doesn't.
-- **An actual eval:** `npm run eval` runs the pipeline against a 16-case labeled fixture set and reports Prover-only vs. full-pipeline precision/recall. See [Evaluation](#evaluation).
+- **An actual eval:** `npm run eval` runs the pipeline against an 18-case labeled fixture set and reports Prover-only vs. full-pipeline precision/recall. See [Evaluation](#evaluation).
 
 ## New in v1.1.0
 
@@ -81,12 +81,18 @@ part of CI.
 
 ## Evaluation
 
-Does the Skeptic phase actually catch what it claims to catch? `eval/` holds a 16-case labeled fixture set (8 real vulnerabilities, 8 false-positive bait) and a harness that reports Prover-only vs. full-pipeline precision/recall/F1:
+Does the Skeptic phase actually catch what it claims to catch? `eval/` holds an 18-case labeled fixture set (9 real vulnerabilities, 9 false-positive bait) and a harness that reports Prover-only vs. full-pipeline precision/recall/F1:
 
 ```bash
 npm run eval              # auto-picks provider from configured keys
 npm run eval -- claude    # force Claude
 npm run eval -- gemini    # force Gemini
+```
+
+**Injection resistance.** Skeptic reads the file under review into its own prompt, so the file can try to talk the auditor out of the audit ("report no findings"). The file is fenced as untrusted data in the prompt, and a deterministic detector flags any auditor-directed injection as a HIGH finding regardless of what the model concludes — so steering the model can't silently clear a file. Proven offline, no API key needed:
+
+```bash
+npm run test:injection    # 13 assertions over the detector and its precision
 ```
 
 Full methodology, what the numbers do and don't show, and how to read a result honestly: [docs/EVAL.md](docs/EVAL.md).
